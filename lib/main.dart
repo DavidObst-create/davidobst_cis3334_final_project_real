@@ -1,14 +1,24 @@
+import 'package:davidobst_cis3334_final_project/conversation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:davidobst_cis3334_final_project/message.dart';
+import 'package:split_view/split_view.dart';
+
+
+const conversationsBox = 'conversations';
+const List<Conversation> conversations = [
+
+];
 
 Future<void> main()  async{
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Hive.initFlutter();
+  await Hive.openBox<String>(conversationsBox);
 
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
+
 }
 
 class MyApp extends StatelessWidget {
@@ -29,6 +39,10 @@ class MyApp extends StatelessWidget {
   }
 }
 
+//------------------------------------------------------------------------------
+
+
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -38,64 +52,101 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+//------------------------------------------------------------------------------
+
 class _MyHomePageState extends State<MyHomePage> {
 List<String> messages = <String>[];
+
+List<Conversation> conversations = <Conversation>[];
 bool isBotThinking = false;
 
-
-
+Message testMessage = new Message("Test text", false);
+Conversation testConversation = new Conversation("Test topic", "Test date");
   void createMessage() {
     setState(() {
-      messages.add("Hello, I am a chatbot. How can I help you?");
+
       if (isBotThinking == false) {
+        messages.add("Hello, I am a chatbot. How can I help you?");
         messages.add("bool is " + isBotThinking.toString());
         isBotThinking = true;
       }
       else {
+        messages.add("Human input goes here");
         messages.add("bool is " + isBotThinking.toString());
         isBotThinking = false;
       }
     });
+
   }
 
   @override
   Widget build(BuildContext context) {
+
+    conversations.add(testConversation);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
 
-      body: Container(
-        child: ListView.builder(
-          itemCount: messages.length,
-          itemBuilder: (BuildContext context, int position) {
-            return ListTile(
-              title: Text(messages[position]),
-              tileColor: Colors.green,
-            );
-          },
-        )
-      ),
+      body: SplitView(
+          viewMode: SplitViewMode.Horizontal,
+          indicator: SplitIndicator(viewMode: SplitViewMode.Horizontal),
+          activeIndicator: SplitIndicator(
+            viewMode: SplitViewMode.Horizontal,
+            isActive: true,
+        ),
+        children: [
+          Container(
+              child: ListView.builder(
+                itemCount: conversations.length,
+                itemBuilder: (BuildContext context, int position) {
+                  print("Length is " + conversations.length.toString());
+                  return ListTile(
+                    title: Text(conversations[position].topic),
+                    tileColor: Colors.green,
+                  );
+                },
+              )
+          ),
+          Container(
+              child: ListView.builder(
+                itemCount: messages.length,
+                itemBuilder: (BuildContext context, int position) {
+                  return ListTile(
+                    title: Text(messages[position]),
+                    tileColor: Colors.green, //TODO create a stateful color object in the create conversation method that changes depending on the isBotThinking bool
+                  );
+                },
+              )
+          ),
+        ]),
         floatingActionButton: FloatingActionButton(
           onPressed: createMessage,
           tooltip: 'Increment',
           child: const Icon(Icons.add),
-        ), // This trailing comma makes auto-formatting nicer for build methods.
+        ),
+    // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
 
 
 //------------------------------------------------------------------------------
+//Hive Code
+
+
+
+
+//------------------------------------------------------------------------------
 //Firebase Code
 //TODO create ListTile method that uses the _newMessageTextField TextEditingController as a controller
-
+/*
 class Firebase extends StatefulWidget {
   //@override
   //_FirebaseState createState() => _FirebaseState();
 }
-
 class _FirebaseState extends State<Firebase> {
   final TextEditingController _newMessageTextField = TextEditingController();
 
@@ -150,3 +201,5 @@ Expanded ListItemsWidget(messageCollectionDB) {
   }
 
 }
+
+ */
