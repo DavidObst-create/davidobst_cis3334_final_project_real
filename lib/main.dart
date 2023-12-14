@@ -13,18 +13,16 @@ const List<Conversation> conversations = [
 ];
 
 Future<void> main()  async{
-  await Hive.initFlutter();
-  await Hive.openBox<String>(conversationsBox);
-
   WidgetsFlutterBinding.ensureInitialized();
+  Hive.registerAdapter<Conversation>(ConversationAdapter());
+  await Hive.initFlutter();
+  await Hive.openBox<Conversation>(conversationsBox);
   runApp(const MyApp());
-
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -55,151 +53,116 @@ class MyHomePage extends StatefulWidget {
 //------------------------------------------------------------------------------
 
 class _MyHomePageState extends State<MyHomePage> {
-List<String> messages = <String>[];
+List<Message> messages = <Message>[];
 
 List<Conversation> conversations = <Conversation>[];
 bool isBotThinking = false;
 
 Message testMessage = new Message("Test text", false);
-Conversation testConversation = new Conversation("Test topic", "Test date");
+Conversation testConversation = new Conversation("Test topic", DateTime.now());
+conversations.add(testConversation);
+Conversation currentConvo = conversations[0];
+
   void createMessage() {
     setState(() {
-
+      messages = conversations[0].getMessages();
+      print("Messages list length is " + messages.length.toString();
       if (isBotThinking == false) {
-        messages.add("Hello, I am a chatbot. How can I help you?");
-        messages.add("bool is " + isBotThinking.toString());
+        currentConvo = conversations[0];
+        currentConvo.addMessage("Human message", false);
         isBotThinking = true;
       }
       else {
-        messages.add("Human input goes here");
-        messages.add("bool is " + isBotThinking.toString());
+        currentConvo = conversations[0];
+        currentConvo.addMessage("Bot message", true);
         isBotThinking = false;
       }
-    });
-
-  }
-
-  @override
-  Widget build(BuildContext context) {
-
-    conversations.add(testConversation);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-
-      body: SplitView(
-          viewMode: SplitViewMode.Horizontal,
-          indicator: SplitIndicator(viewMode: SplitViewMode.Horizontal),
-          activeIndicator: SplitIndicator(
-            viewMode: SplitViewMode.Horizontal,
-            isActive: true,
-        ),
-        children: [
-          Container(
-              child: ListView.builder(
-                itemCount: conversations.length,
-                itemBuilder: (BuildContext context, int position) {
-                  print("Length is " + conversations.length.toString());
-                  return ListTile(
-                    title: Text(conversations[position].topic),
-                    tileColor: Colors.green,
-                  );
-                },
-              )
-          ),
-          Container(
-              child: ListView.builder(
-                itemCount: messages.length,
-                itemBuilder: (BuildContext context, int position) {
-                  return ListTile(
-                    title: Text(messages[position]),
-                    tileColor: Colors.green, //TODO create a stateful color object in the create conversation method that changes depending on the isBotThinking bool
-                  );
-                },
-              )
-          ),
-        ]),
-        floatingActionButton: FloatingActionButton(
-          onPressed: createMessage,
-          tooltip: 'Increment',
-          child: const Icon(Icons.add),
-        ),
-    // This trailing comma makes auto-formatting nicer for build methods.
+      messages = conversations[0].getMessages();
+      print("Messages list length is " + messages.length.toString());
+}
     );
+
+
   }
+
+@override
+Widget build(BuildContext context) {
+
+  conversations.add(testConversation);
+
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(widget.title),
+      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+    ),
+
+    body: Column(
+      children: <Widget>[
+        Expanded(
+          child: SplitView(
+              viewMode: SplitViewMode.Horizontal,
+              indicator: SplitIndicator(viewMode: SplitViewMode.Horizontal),
+              activeIndicator: SplitIndicator(
+                viewMode: SplitViewMode.Horizontal,
+                isActive: true,
+              ),
+              children: [
+                Container(
+                    child: ListView.builder(
+                      itemCount: conversations.length,
+                      itemBuilder: (BuildContext context, int position) {
+                        print("Conversations list length is " + conversations.length.toString());
+                        return ListTile(
+                          title: Text(conversations[position].topic),
+                          tileColor: Colors.green,
+                        );
+                      },
+                    )
+                ),
+                Container(
+                    child: ListView.builder(
+                      itemCount: currentConvo.messages.length,
+                      itemBuilder: (BuildContext context, int position) {
+                        Message message = currentConvo.messages[position];
+                        return ListTile(
+                          title: Text(message.messageText),
+                          tileColor: Colors.green, //TODO create a stateful color object in the create conversation method that changes depending on the isBotThinking bool
+                        );
+                      },
+                    )
+                ),
+              ]
+          ),
+        ),
+        Container(
+          child: Column(
+            children: [
+            TextField(
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'New Message',
+              ),
+              controller: TextEditingController(),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final message = Message("Test message", false);
+                if (message != null) {
+                  Hive.box<Conversation>
+                }
+                  setState(() {});
+              },
+              child: const Text('Send'),
+            ),
+            ]
+          )
+        )
+      ],
+    ),
+  );
+}
 }
 
 
 //------------------------------------------------------------------------------
 //Hive Code
-
-
-
-
-//------------------------------------------------------------------------------
-//Firebase Code
-//TODO create ListTile method that uses the _newMessageTextField TextEditingController as a controller
-/*
-class Firebase extends StatefulWidget {
-  //@override
-  //_FirebaseState createState() => _FirebaseState();
-}
-class _FirebaseState extends State<Firebase> {
-  final TextEditingController _newMessageTextField = TextEditingController();
-
-  final CollectionReference messageCollectionDB = FirebaseFirestore.instance.collection('MESSAGES');
-
-  @override
-  Widget build(BuildContext context) {
-  return Scaffold(
-      body: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 50),
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        child: Column(
-          children: [
-          buildRow(context),
-            SizedBox(height: 40,),
-            ListItemsWidget(messageCollectionDB),
-          ],
-        ),
-      ),
-    );
-  }
-
-Expanded ListItemsWidget(messageCollectionDB) {
-    return Expanded(
-              child: StreamBuilder(
-                stream: messageCollectionDB.snapshots(),
-                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                  return ListView.builder(
-                    itemCount: snapshot.data!.docs.length,
-                    itemBuilder: (BuildContext context, int position) {
-                      return Card(
-                          child: listTileWidget(snapshot, position),
-                      );
-                    }
-                  );
-                }
-              )
-            );
-  }
-
-  ListTile listTileWidget(AsyncSnapshot<QuerySnapshot> snapshot, int position) {
-    return ListTile(
-      leading: Icon(Icons.check_box),
-      title: Text(snapshot.data!.docs[position]['message']),
-      onTap: () {
-        setState(() {
-          _newMessageTextField.text = snapshot.data!.docs[position]['message'];
-        });
-      },
-    );
-  }
-
-}
-
- */

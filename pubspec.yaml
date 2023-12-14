@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -50,6 +52,8 @@ dev_dependencies:
   hive: any               # added for hive
   hive_flutter: any       # added for hive
   split_view: any
+  build_runner: ^2.1.0              # added for hive
+  hive_generator: any
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

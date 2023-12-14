@@ -1,15 +1,21 @@
-import 'dart:developer';
-
+import 'package:hive/hive.dart';
 import 'package:davidobst_cis3334_final_project/message.dart';
 
+part 'conversation.g.dart';
 
+@HiveType(typeId: 0)
 class Conversation {
 
+  @HiveField(0)
   String topic = "";
-  String date = "";
+
+  @HiveField(1)
+  DateTime? dateCreated;
+
+  @HiveField(2)
   List<Message> messages = <Message>[];
 
-  Conversation(this.topic, this.date){
+  Conversation(this.topic, this.dateCreated){
     addMessage("Test message", false);
     print("Conversation created");
   }
@@ -20,5 +26,9 @@ class Conversation {
 
   void removeMessage(int index) {
     messages.removeAt(index);
+  }
+
+  List<Messages> getMessages() {
+    return messages;
   }
 }
