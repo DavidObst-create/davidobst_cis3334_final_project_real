@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
 
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({Key? key, required this.title}) : super(key: key)
 
   final String title;
 
@@ -60,13 +60,12 @@ bool isBotThinking = false;
 
 Message testMessage = new Message("Test text", false);
 Conversation testConversation = new Conversation("Test topic", DateTime.now());
-conversations.add(testConversation);
 Conversation currentConvo = conversations[0];
 
   void createMessage() {
     setState(() {
       messages = conversations[0].getMessages();
-      print("Messages list length is " + messages.length.toString();
+      print("Messages list length is " + messages.length.toString());
       if (isBotThinking == false) {
         currentConvo = conversations[0];
         currentConvo.addMessage("Human message", false);
@@ -148,7 +147,8 @@ Widget build(BuildContext context) {
               onPressed: () async {
                 final message = Message("Test message", false);
                 if (message != null) {
-                  Hive.box<Conversation>
+                  //await Hive.box<Conversation>(conversationsBox).add(message);
+                  //print("Message added");
                 }
                   setState(() {});
               },
